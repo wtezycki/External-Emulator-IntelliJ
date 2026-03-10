@@ -5,7 +5,7 @@ import models.enums.Style;
 
 // Cell is immutable record.
 public record Cell(
-        char sign,
+        char ch,
         Color bgColor,
         Color fgColor,
         int style           // int : bit sum of styles
