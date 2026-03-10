@@ -14,6 +14,7 @@ import java.util.List;
 // - Setup (width | height | max scrollback)
 // - Set current attributes
 // - Cursor (set position (row, col) | move cursor (and stay within border of terminal))
+// I assumed that negative y coordinates mean that it is scrollback.
 public class TerminalBuffer {
 
     // Screen:
@@ -72,16 +73,21 @@ public class TerminalBuffer {
 
     // EDITING TEXT:
 
+    public void insertEmptyLineAtBottom() {
+        TerminalLine row = screen.removeFirst();
+        // if scrollback history is full, remove the oldest line from screen
+        if (scrollback.size() >= this.maxScrollback) {
+            scrollback.pollFirst();
+        }
+        scrollback.addLast(row);
+        screen.add(new TerminalLine(width));
+    }
+
     // Scrolling helper
     private void scroll() {
         if (cursorY >= height) {
-            TerminalLine row = screen.removeFirst();
-            // if scrollback history is full, remove the oldest line from screen
-            if (scrollback.size() >= this.maxScrollback) {
-                scrollback.pollFirst();
-            }
-            scrollback.addLast(row);
-            screen.add(new TerminalLine(width));
+            insertEmptyLineAtBottom();
+            cursorY = height - 1;
         }
     }
 
@@ -118,7 +124,6 @@ public class TerminalBuffer {
 
                 // Scrolling
                 scroll();
-                cursorY = height - 1;
             }
         }
     }
@@ -206,6 +211,69 @@ public class TerminalBuffer {
         scrollback.clear();
     }
 
+    // Content Access
+    public String getScreenAsString() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < screen.size(); i++) {
+            sb.append(screen.get(i).getLineAsString());
+            if (i < screen.size() - 1) {
+                sb.append("\n");    // add newline character at the end of every (but not last) line
+            }
+        }
+        return sb.toString();
+    }
+
+    public String getScreenAndHistoryAsString() {
+        StringBuilder sb = new StringBuilder();
+        for (TerminalLine line : scrollback) {
+            sb.append(line.getLineAsString()).append('\n');
+        }
+        sb.append(getScreenAsString());
+        return sb.toString();
+    }
+
+    private TerminalLine getLine(int y) {
+        if (y >= 0 && y < height) {
+            // Screen coordinates
+            return screen.get(y);
+        } else if (y < 0 && Math.abs(y) <= scrollback.size()) {
+            // Scrollback
+            // Conversion of deque to ArrayList (indexed access)
+            List<TerminalLine> history = new ArrayList<>(scrollback);
+            return history.get(history.size() + y); // y = -1, the newest line
+        }
+        return null;
+    }
+
+    public char getCharAtPos(int x, int y) {
+        TerminalLine line = getLine(y);
+        if (line != null && x >= 0 && x < width) {
+            return line.getCell(x).ch(); // return char if position is valid
+        }
+        return ' '; // return empty (not found)
+    }
+
+    public CellAttribute getAttributeAtPos(int x, int y) {
+        TerminalLine line = getLine(y);
+        if (line != null && x >= 0 && x < width) {
+            Cell cell = line.getCell(x);
+            CellAttribute attribute = new CellAttribute();
+
+            attribute.setBgColor(cell.bgColor());
+            attribute.setFgColor(cell.fgColor());
+            attribute.setStyle(cell.style());
+            return attribute;
+        }
+        return new CellAttribute(); // return empty cell (not found)
+    }
+
+    public String getLineAsString(int y) {
+        TerminalLine line = getLine(y);
+        if (line != null) {
+            return line.getLineAsString();
+        }
+        return "";
+    }
 
 
 }

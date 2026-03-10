@@ -61,4 +61,12 @@ public class TerminalLine {
         return cellToCarry;
     }
 
+    public String getLineAsString() {
+        StringBuilder sb = new StringBuilder(width);
+        for (Cell cell : row) {
+            sb.append(cell.ch());
+        }
+        return sb.toString();
+    }
+
 }
