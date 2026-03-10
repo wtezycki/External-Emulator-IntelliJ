@@ -1,5 +1,6 @@
 package core;
 
+import models.Cell;
 import models.CellAttribute;
 import models.TerminalLine;
 
@@ -67,6 +68,58 @@ public class TerminalBuffer {
     public void moveCursor(int dx, int dy) {
         setCursorPosition(cursorX + dx,
                         cursorY + dy);
+    }
+
+    // EDITING TEXT:
+
+    // Writing
+    public void write(String text) {
+        for (char ch : text.toCharArray()) {
+            // Case '\n':
+            if (ch == '\n') {
+                cursorY++;
+            }
+            // Case '\r':
+            else if (ch == '\r') {
+                cursorX = 0;
+            }
+            // Normal writing
+            else {
+                TerminalLine currentLine = screen.get(cursorY); // y -> index of line
+
+                Cell cell = new Cell(
+                        ch,
+                        currAttribute.getBgColor(),
+                        currAttribute.getFgColor(),
+                        currAttribute.getStyle()
+                );
+
+                currentLine.setCell(cursorX, cell);
+                cursorX++;
+
+                // Check wrapping
+                if (cursorX >= width) {
+                    cursorX = 0;
+                    cursorY++;
+                }
+
+                // Scrolling
+                if (cursorY >= height) {
+                    TerminalLine row = screen.removeFirst();
+
+                    // if scrollback history is full, remove the oldest line from screen
+                    if (scrollback.size() >= this.maxScrollback) {
+                        scrollback.pollFirst();
+                    }
+
+                    scrollback.addLast(row);
+
+                    screen.add(new TerminalLine(width));
+
+                    cursorY = height - 1;
+                }
+            }
+        }
     }
 
 }
