@@ -42,4 +42,23 @@ public class TerminalLine {
     public List<Cell> getRow() { return Collections.unmodifiableList(row); }
     public int getWidth() { return width; }
 
+    public void fill(Cell cell) {
+        for (int i = 0; i < width; i++ ) {
+            row.set(i, cell);
+        }
+    }
+
+    public Cell insertCell(int x, Cell cell) {
+        if (x < 0 || x >= width) return Cell.createEmpty();
+
+        Cell cellToCarry = row.get(width - 1); // cell that will be carried to next row
+
+        // Set cell[i-1] to cell[i] sequentially
+        for (int i = width - 1; i > x; i--) {
+            row.set(i, row.get(i-1));
+        }
+        row.set(x, cell);
+        return cellToCarry;
+    }
+
 }

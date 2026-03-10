@@ -3,6 +3,7 @@ package core;
 import models.Cell;
 import models.CellAttribute;
 import models.TerminalLine;
+import models.enums.Color;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -66,11 +67,23 @@ public class TerminalBuffer {
     }
 
     public void moveCursor(int dx, int dy) {
-        setCursorPosition(cursorX + dx,
-                        cursorY + dy);
+        setCursorPosition(cursorX + dx, cursorY + dy);
     }
 
     // EDITING TEXT:
+
+    // Scrolling helper
+    private void scroll() {
+        if (cursorY >= height) {
+            TerminalLine row = screen.removeFirst();
+            // if scrollback history is full, remove the oldest line from screen
+            if (scrollback.size() >= this.maxScrollback) {
+                scrollback.pollFirst();
+            }
+            scrollback.addLast(row);
+            screen.add(new TerminalLine(width));
+        }
+    }
 
     // Writing
     public void write(String text) {
@@ -104,22 +117,95 @@ public class TerminalBuffer {
                 }
 
                 // Scrolling
-                if (cursorY >= height) {
-                    TerminalLine row = screen.removeFirst();
-
-                    // if scrollback history is full, remove the oldest line from screen
-                    if (scrollback.size() >= this.maxScrollback) {
-                        scrollback.pollFirst();
-                    }
-
-                    scrollback.addLast(row);
-
-                    screen.add(new TerminalLine(width));
-
-                    cursorY = height - 1;
-                }
+                scroll();
+                cursorY = height - 1;
             }
         }
     }
+
+    // Insert
+    // I assumed that the cell which was popped is carried to the next line.
+    public void insert(String text) {
+        for (char ch : text.toCharArray()) {
+            if (ch == '\n') {
+                cursorY++;
+                continue;           // continue, because this character is invisible
+            } else if (ch == '\r') {
+                cursorX = 0;
+                continue;
+            }
+
+            Cell toInsert = new Cell(
+                    ch,
+                    currAttribute.getBgColor(),
+                    currAttribute.getFgColor(),
+                    currAttribute.getStyle()
+            );
+
+            int tempX = cursorX;
+            int tempY = cursorY;
+
+            while(true) {
+                TerminalLine currLine = screen.get(tempY);
+                Cell toCarry = currLine.insertCell(tempX, toInsert);
+
+                if (Cell.checkIfEmpty(toCarry)) {
+                    break;
+                }
+
+                toInsert = toCarry;
+                tempY++;
+                tempX=0;
+
+                if (tempY >= height) {
+                    scroll();
+                    tempY = height - 1;
+                }
+            }
+
+            cursorX++;  // place for next character
+
+            // Check boundaries
+            if (cursorX >= width) {
+                cursorX = 0;
+                cursorY++;
+            }
+            if (cursorY >= height) {
+                scroll();
+                cursorY = height - 1;
+            }
+        }
+    }
+
+    // Fill line
+    public void fillLine(char ch) {
+        TerminalLine currentLine = screen.get(cursorY);
+
+        Cell cell = new Cell(
+                ch,
+                currAttribute.getBgColor(),
+                currAttribute.getFgColor(),
+                currAttribute.getStyle()
+        );
+        currentLine.fill(cell);
+    }
+
+    // Cleaning screen
+    public void clearScreen() {
+        for (int i = 0; i < height; i++) {
+            TerminalLine row = screen.get(i);
+            for(int j = 0; j < width; j++) {
+                row.setCell(j, Cell.createEmpty());
+            }
+        }
+        setCursorPosition(0, 0);
+    }
+
+    public void clearScreenAndScrollback() {
+        clearScreen();
+        scrollback.clear();
+    }
+
+
 
 }
