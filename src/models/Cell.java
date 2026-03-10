@@ -17,4 +17,7 @@ public record Cell(
                 Color.DEFAULT,
                 0);
     }
+    public static boolean checkIfEmpty(Cell cell) {
+        return cell.equals(Cell.createEmpty());
+    }
 }

@@ -3,7 +3,7 @@ package models;
 import models.enums.Color;
 import models.enums.Style;
 
-public class CellAttributes {
+public class CellAttribute {
 
     private Color fgColor = Color.DEFAULT;
     private Color bgColor = Color.DEFAULT;
