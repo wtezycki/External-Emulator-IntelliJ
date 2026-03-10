@@ -1,6 +1,7 @@
 package models;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 // Manages one row
@@ -24,20 +25,21 @@ public class TerminalLine {
     }
 
     public void setCell(int x, Cell cell) {
-        if (x >= 0 && x <= width) {
+        if (x >= 0 && x < width) {
             row.set(x, cell); // set cell on index x
         }
     }
 
     public Cell getCell(int x) {
-        if (x >= 0 && x <= width) {
+        if (x >= 0 && x < width) {
             return row.get(x);
         }
         // for safety
         return Cell.createEmpty();
     }
 
-    public List<Cell> getRow() { return row; }
+    // Return unmodifiable list so it is blocked to change state of the row from the outside.
+    public List<Cell> getRow() { return Collections.unmodifiableList(row); }
     public int getWidth() { return width; }
 
 }
