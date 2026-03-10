@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.List;
 
 // Manages one row
-// TODO: usecases, for now I can't really tell what this class needs
 public class TerminalLine {
 
     // Row is a stable container for one line in terminal. For now, you can't dynamically change the size of terminal window,
@@ -38,9 +37,6 @@ public class TerminalLine {
         return Cell.createEmpty();
     }
 
-    // Return unmodifiable list so it is blocked to change state of the row from the outside.
-    public List<Cell> getRow() { return Collections.unmodifiableList(row); }
-    public int getWidth() { return width; }
 
     public void fill(Cell cell) {
         for (int i = 0; i < width; i++ ) {
