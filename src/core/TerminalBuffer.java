@@ -115,16 +115,16 @@ public class TerminalBuffer {
 
                 currentLine.setCell(cursorX, cell);
                 cursorX++;
-
-                // Check wrapping
-                if (cursorX >= width) {
-                    cursorX = 0;
-                    cursorY++;
-                }
-
-                // Scrolling
-                scroll();
             }
+
+            // Check wrapping
+            if (cursorX >= width) {
+                cursorX = 0;
+                cursorY++;
+            }
+
+            // Scrolling
+            scroll();
         }
     }
 
