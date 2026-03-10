@@ -97,6 +97,7 @@ public class TerminalBuffer {
             // Case '\n':
             if (ch == '\n') {
                 cursorY++;
+                cursorX = 0;
             }
             // Case '\r':
             else if (ch == '\r') {
@@ -134,6 +135,8 @@ public class TerminalBuffer {
         for (char ch : text.toCharArray()) {
             if (ch == '\n') {
                 cursorY++;
+                cursorX = 0;
+                scroll();
                 continue;           // continue, because this character is invisible
             } else if (ch == '\r') {
                 cursorX = 0;
@@ -275,5 +278,11 @@ public class TerminalBuffer {
         return "";
     }
 
+
+    public void setCurrentAttributes(models.enums.Color fg, models.enums.Color bg, int style) {
+        this.currAttribute.setFgColor(fg);
+        this.currAttribute.setBgColor(bg);
+        this.currAttribute.setStyle(style);
+    }
 
 }
